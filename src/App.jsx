@@ -2,6 +2,8 @@ import React from 'react';
 import RootNavigator from './navigation/RootNavigator';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {StyleSheet} from 'react-native';
+import store from './store';
+import {Provider} from 'react-redux';
 
 const styles = StyleSheet.create({
   container: {
@@ -11,9 +13,11 @@ const styles = StyleSheet.create({
 
 function App() {
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <RootNavigator />
-    </GestureHandlerRootView>
+    <Provider store={store}>
+      <GestureHandlerRootView style={styles.container}>
+        <RootNavigator />
+      </GestureHandlerRootView>
+    </Provider>
   );
 }
 

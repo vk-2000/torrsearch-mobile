@@ -2,60 +2,33 @@ import {useTheme} from '@react-navigation/native';
 import React from 'react';
 import {View, Text, TouchableOpacity, Switch} from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
-import torrsearch from 'torrsearch';
 import getStyles from './SItesConfig.styles';
 import {faGrip} from '@fortawesome/free-solid-svg-icons';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import HeaderBack from '../../components/HeaderBack';
 import {generateColor} from '../../utils/common';
-
-const defaultSites = torrsearch.listSites().map(site => {
-  return {name: site, key: site, isSelected: true};
-});
+import {useSelector, useDispatch} from 'react-redux';
+import {
+  selectSites,
+  getSites,
+  reorderSites,
+  toggleSite,
+} from '../../features/sites/sitesSlice';
 
 const SitesConfig = ({navigation}) => {
-  const [sites, setSites] = React.useState([]);
   const {colors} = useTheme();
   const styles = getStyles(colors);
-  React.useEffect(() => {
-    AsyncStorage.getItem('sites')
-      .then(value => {
-        if (value !== null) {
-          setSites(JSON.parse(value));
-        } else {
-          setSites(defaultSites);
-        }
-      })
-      .catch(e => {
-        console.log(e);
-      });
-  }, []);
-  React.useEffect(() => {
-    AsyncStorage.setItem('sites', JSON.stringify(sites));
-  }, [sites]);
+  const sitesStatus = useSelector(state => state.sites.status);
+  const dispatch = useDispatch();
+  const sites = useSelector(selectSites);
 
   React.useEffect(() => {
-    const onBackPress = () => {
-      navigation.navigate('Home', {
-        settingsUpdated: true,
-        updatedSites: sites,
-      });
-    };
-    navigation.setOptions({
-      // eslint-disable-next-line react/no-unstable-nested-components
-      headerLeft: () => <HeaderBack onBackPress={onBackPress} />,
-    });
-  }, [navigation, sites]);
-
-  const handleSwitchChange = (index, value) => {
-    const selectedCount = sites.filter(site => site.isSelected).length;
-    if (selectedCount === 1 && value === false) {
-      return;
+    if (sitesStatus === 'idle') {
+      dispatch(getSites());
     }
-    const newSites = [...sites];
-    newSites[index].isSelected = value;
-    setSites(newSites);
+  }, [sitesStatus, dispatch]);
+
+  const handleSwitchChange = key => {
+    dispatch(toggleSite(key));
   };
 
   const renderItem = ({item, getIndex, drag}) => {
@@ -76,9 +49,9 @@ const SitesConfig = ({navigation}) => {
             <View style={styles.controlsContianer}>
               <Switch
                 style={styles.controls}
-                value={item.isSelected}
+                value={item.enabled}
                 onValueChange={value => {
-                  handleSwitchChange(getIndex(), value);
+                  handleSwitchChange(item.key);
                 }}
               />
               <FontAwesomeIcon
@@ -95,7 +68,7 @@ const SitesConfig = ({navigation}) => {
   };
 
   const onDragEnd = ({data}) => {
-    setSites(data);
+    dispatch(reorderSites(data));
   };
   return (
     <View>

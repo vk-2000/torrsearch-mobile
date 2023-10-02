@@ -3,32 +3,48 @@ import {View, Text, ActivityIndicator, FlatList} from 'react-native';
 import torrsearch from 'torrsearch';
 import TorrentCard from '../TorrentCard';
 import getStyles from './TorrentList.styles';
-import {useNavigation, useTheme} from '@react-navigation/native';
+import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
 import LabelBadge from '../LabelBadge';
+import {selectSearch} from '../../features/search/searchSlice';
+import {useSelector} from 'react-redux';
 
-const TORRENT_LIMIT = 20;
+const TORRENT_LIMIT = 15;
 
-const TorrentList = ({site, query}) => {
+const TorrentList = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const {site} = route.params;
   const [torrents, setTorrents] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const {colors} = useTheme();
   const styles = getStyles(colors);
+  const query = useSelector(selectSearch);
+
   React.useEffect(() => {
     if (query === '') {
       setTorrents([]);
       return;
     }
     setLoading(true);
-    torrsearch
-      .search(query, TORRENT_LIMIT, site)
-      .then(res => {
+    (async () => {
+      try {
+        const res = await torrsearch.search(query, TORRENT_LIMIT, site);
         setLoading(false);
         setTorrents(res);
-      })
-      .catch(() => {
+      } catch (e) {
         setLoading(false);
-      });
+        // console.log(e);
+      }
+    })();
+    // torrsearch
+    //   .search(query, TORRENT_LIMIT, site)
+    //   .then(res => {
+    //     setLoading(false);
+    //     setTorrents(res);
+    //   })
+    //   .catch(() => {
+    //     setLoading(false);
+    //   });
   }, [site, query]);
 
   React.useEffect(() => {
@@ -77,4 +93,4 @@ const TorrentList = ({site, query}) => {
   );
 };
 
-export default TorrentList;
+export default React.memo(TorrentList);

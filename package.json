@@ -20,6 +20,7 @@
     "@react-navigation/material-top-tabs": "^6.6.4",
     "@react-navigation/native": "^6.1.8",
     "@react-navigation/stack": "^6.3.18",
+    "@reduxjs/toolkit": "^1.9.6",
     "react": "18.2.0",
     "react-native": "0.72.5",
     "react-native-draggable-flatlist": "^4.0.1",
@@ -30,6 +31,7 @@
     "react-native-screens": "^3.25.0",
     "react-native-svg": "^13.14.0",
     "react-native-tab-view": "^3.5.2",
+    "react-redux": "^8.1.3",
     "torrsearch": "github:vk-2000/torrsearch"
   },
   "devDependencies": {
