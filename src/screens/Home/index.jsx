@@ -8,20 +8,32 @@ import {faSliders} from '@fortawesome/free-solid-svg-icons';
 import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
 import {useSelector, useDispatch} from 'react-redux';
 import {selectSites, getSites} from '../../features/sites/sitesSlice';
-import {selectSearch, setSearch} from '../../features/search/searchSlice';
+import {setSearch} from '../../features/search/searchSlice';
 
 const Tab = createMaterialTopTabNavigator();
 
-function Home({navigation, route}) {
-  // const [search, setSearch] = React.useState('');
+function Home({navigation}) {
   const {colors} = useTheme();
   const styles = getStyles(colors);
 
   const sites = useSelector(selectSites);
+  const torrents = useSelector(state => state.sites.torrents);
   const sitesStatus = useSelector(state => state.sites.status);
   const dispatch = useDispatch();
 
-  const search = useSelector(selectSearch);
+  const [selectedSites, setSelectedSites] = React.useState([]);
+
+  React.useEffect(() => {
+    setSelectedSites(
+      sites &&
+        sites.filter(
+          site =>
+            site.enabled &&
+            (torrents[site.key].status === 'fulfilled' ||
+              torrents[site.key].status === 'idle'),
+        ),
+    );
+  }, [sites, torrents]);
 
   React.useEffect(() => {
     if (sitesStatus === 'idle') {
@@ -30,7 +42,6 @@ function Home({navigation, route}) {
   }, [sitesStatus, dispatch]);
 
   const handleSearch = text => {
-    console.log(text);
     dispatch(setSearch(text.trim()));
   };
   return (
@@ -53,21 +64,19 @@ function Home({navigation, route}) {
           screenOptions={{
             tabBarScrollEnabled: true,
           }}>
-          {sites.length === 0 ? (
-            <Tab.Screen name="Select atleast 1 site" children={() => <></>} />
+          {selectedSites.length === 0 ? (
+            <Tab.Screen name="Loading..." children={() => <></>} />
           ) : (
-            sites
-              .filter(site => site.enabled)
-              .map(site => {
-                return (
-                  <Tab.Screen
-                    name={site.name}
-                    component={TorrentList}
-                    initialParams={{site: site.name}}
-                    key={site.key}
-                  />
-                );
-              })
+            selectedSites.map(site => {
+              return (
+                <Tab.Screen
+                  name={site.name}
+                  component={TorrentList}
+                  initialParams={{site: site.name}}
+                  key={site.key}
+                />
+              );
+            })
           )}
         </Tab.Navigator>
       </View>
